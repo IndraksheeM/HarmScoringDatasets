@@ -1,0 +1,89 @@
+from TikTokApi import TikTokApi
+import asyncio
+import os
+import browser_cookie3
+import numpy as np
+import csv
+
+#video_id = 7248300636498890011 #video uploaded by Kai Trump (Donald Trump's granddaughter. the video garnered 1237 comments)
+#video_id = 7446526285645434142 (Kai Trump disabled comments so we are using the next one by Latisha Clark)
+
+#video_id = 7457830539471506696 #Latisha Clark video
+#video_id = 7455467603121982766 #1
+#video_id = 7460685845910310190 #2
+#video_id = 7459491278120832302 #3 
+#video_id = 7375596642311064878 #4 
+#video_id = 7444646879003954465 #5
+#video_id = 7455329177831607560 #6
+#video_id = 7440927679739678007 #7
+#video_id = 7430529039443479840 #8
+#video_id = 7460562387368676641 #9
+#video_id = 7440525188451618081 #10 
+#video_id = 7458850831199112481 #11
+#video_id = 7450960343909535008 #12
+#video_id = 7458753529302289672 #13
+#video_id = 7460997559021030698 #14
+#video_id = 7459506825734409514 #15 done till here stop 1
+
+#video_id = 7219497020594064645
+#video_id = 7387366402405027105
+#video_id = 7250165196130389274
+#video_id = 7352172913954409771
+#video_id = 7288791933869182214
+#video_id = 7151544897261030661 #timedout!!!!
+
+#video_id = 7221476799337811218
+#video_id = 7299187143002459438
+video_id = 7465288460467834120 #done till here 
+
+#7439426501084204319 (this had 1724 comments but i did not run it)
+
+#ms_token = os.environ.get("ms_token", None)  # set your own ms_token
+
+def get_ms_token():
+    chrome_cookies = list(browser_cookie3.chrome())
+    for cookie in chrome_cookies:
+        if (cookie.name == "ms_token"):
+            print(cookie.value)
+            return cookie.value
+        
+
+ms_token = get_ms_token()
+
+
+async def get_comments():
+    async with TikTokApi() as api:
+        await api.create_sessions(ms_tokens=[ms_token], num_sessions=1, sleep_after=10)
+        video = api.video(id=video_id)
+        count = 0
+        #with open ('examples/scraper_expt/scraper_output/output1.txt', 'w') as outputfile:
+        with open ('examples/scraper_expt/scraper_output/output_7465288460467834120.csv', 'w+') as outputfile:
+            outputwriter = csv.writer(outputfile)
+            headerfields = ["id", "text", "author", "likes count", "metadata", "comment timestamp", "comment language", "number of replies"]
+            outputwriter.writerow(headerfields) 
+            async for comment in video.comments(count=100): #play around with this number and see how high we can get
+                #print(comment)
+                print(comment.as_dict)
+                #outputfile.write(str (comment))
+                #outputfile.write(str (comment.as_dict))
+
+              
+                '''
+                #works for txt/json
+                outputfile.write(str (comment.id))
+                outputfile.write(" ")
+                outputfile.write(str (comment.text))
+                outputfile.write("\n")
+
+                '''
+
+                outputwriter.writerow([ str(comment.id), str(comment.text), str(comment.author), 
+                                       str(comment.likes_count), str(comment.as_dict), str(comment.as_dict["create_time"]), 
+                                        str(comment.as_dict["comment_language"]), str(comment.as_dict["reply_comment_total"])])
+
+
+# check later if you can retrive url 
+# ,str(comment.as_dict["url"]) 
+
+if __name__ == "__main__":
+    asyncio.run(get_comments())
